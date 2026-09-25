@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+
+<robot name="chud"
+       xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<exec_depend>xacro</exec_depend>
+<exec_depend>robot_state_publisher</exec_depend>
+<exec_depend>joint_state_publisher</exec_depend>
+<exec_depend>joint_state_publisher_gui</exec_depend>
+
+<link name="base_link">
+    <visual>
+        <geometry>
+            <box size="0.50 0.40 0.20"/>
+        </geometry>
+    </visual>
+
+    <collision>
+        <geometry>
+            <box size="0.50 0.40 0.20"/>
+        </geometry>
+    </collision>
+</link>
+
+<link name="base_footprint"/>
+<joint name="base_footprint_joint"
+       type="fixed">
+
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+
+    <origin xyz="0 0 0.10" rpy="0 0 0"/>
+</joint>
+
+<link name="laser_link"/>
+<joint name="laser_joint"
+       type="fixed">
+
+    <parent link="base_link"/>
+    <child link="laser_link"/>
+
+    <origin xyz="0 0 0.25"
+            rpy="0 0 0"/>
+</joint>
+
+
+<!-- Wheels start here -->
+
+<!-- Left wheel -->
+    <link name="left_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.10" length="0.05"/>
+            </geometry>
+        </visual>
+
+        <collision>
+            <geometry>
+                <cylinder radius="0.10" length="0.05"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="left_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="left_wheel_link"/>
+
+        <origin xyz="0 0.225 0.10" rpy="1.5708 0 0"/>
+    </joint>
+
+
+    <!-- Right wheel -->
+    <link name="right_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.10" length="0.05"/>
+            </geometry>
+        </visual>
+
+        <collision>
+            <geometry>
+                <cylinder radius="0.10" length="0.05"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="right_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="right_wheel_link"/>
+
+        <origin xyz="0 -0.225 0.10" rpy="1.5708 0 0"/>
+    </joint>
+
+<!-- Visual -->
+<visual>
+    ...
+</visual>
+
+<!-- Collision -->
+<collision>
+    ...
+</collision>
+
+<!-- Inertial -->
+<inertial>
+    ...
+</inertial>
+
+</robot>
