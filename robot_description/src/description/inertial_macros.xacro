@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- inertial_macros.xacro
+     Physics simulators need mass + inertia on every link that moves or collides.
+     These compute the inertia tensor from the shape so you never hand-type it. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Solid box: x=length, y=width, z=height -->
+  <xacro:macro name="box_inertia" params="m x y z *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${(m/12) * (y*y + z*z)}" ixy="0.0" ixz="0.0"
+               iyy="${(m/12) * (x*x + z*z)}" iyz="0.0"
+               izz="${(m/12) * (x*x + y*y)}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Solid cylinder, axis along the link's local Z -->
+  <xacro:macro name="cylinder_inertia" params="m r h *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${(m/12) * (3*r*r + h*h)}" ixy="0.0" ixz="0.0"
+               iyy="${(m/12) * (3*r*r + h*h)}" iyz="0.0"
+               izz="${(m/2) * (r*r)}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Solid sphere -->
+  <xacro:macro name="sphere_inertia" params="m r *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${(2/5) * m * r*r}" ixy="0.0" ixz="0.0"
+               iyy="${(2/5) * m * r*r}" iyz="0.0"
+               izz="${(2/5) * m * r*r}"/>
+    </inertial>
+  </xacro:macro>
+
+</robot>

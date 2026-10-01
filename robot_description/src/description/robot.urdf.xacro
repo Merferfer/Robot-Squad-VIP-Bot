@@ -1,109 +1,106 @@
 <?xml version="1.0"?>
+<robot name="chud" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-<robot name="chud"
-       xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Includes (relative paths resolve from this file's folder; in a package you
+       can also use $(find chud_description)/urdf/robot_dimensions.xacro) -->
+  <xacro:include filename="robot_dimensions.xacro"/>
+  <xacro:include filename="inertial_macros.xacro"/>
+  <xacro:include filename="materials.xacro"/>
 
-<exec_depend>xacro</exec_depend>
-<exec_depend>robot_state_publisher</exec_depend>
-<exec_depend>joint_state_publisher</exec_depend>
-<exec_depend>joint_state_publisher_gui</exec_depend>
+  <!-- ============ Base ============ -->
+  <link name="base_footprint"/>
 
-<link name="base_link">
-    <visual>
-        <geometry>
-            <box size="0.50 0.40 0.20"/>
-        </geometry>
-    </visual>
-
-    <collision>
-        <geometry>
-            <box size="0.50 0.40 0.20"/>
-        </geometry>
-    </collision>
-</link>
-
-<link name="base_footprint"/>
-<joint name="base_footprint_joint"
-       type="fixed">
-
+  <joint name="base_footprint_joint" type="fixed">
     <parent link="base_footprint"/>
     <child link="base_link"/>
+    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+  </joint>
 
-    <origin xyz="0 0 0.10" rpy="0 0 0"/>
-</joint>
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${base_z_offset}" rpy="0 0 0"/>
+      <geometry><box size="${base_length} ${base_width} ${base_height}"/></geometry>
+      <material name="body_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${base_z_offset}" rpy="0 0 0"/>
+      <geometry><box size="${base_length} ${base_width} ${base_height}"/></geometry>
+    </collision>
+    <xacro:box_inertia m="${base_mass}" x="${base_length}" y="${base_width}" z="${base_height}">
+      <origin xyz="0 0 ${base_z_offset}" rpy="0 0 0"/>
+    </xacro:box_inertia>
+  </link>
 
-<link name="laser_link"/>
-<joint name="laser_joint"
-       type="fixed">
+  <!-- ============ Drive wheels ============ -->
+  <!-- x_dir: +1 = front, -1 = rear; y_dir: +1 = left, -1 = right.
+       All wheel axles point along y, so positive joint velocity drives +x. -->
+  <xacro:macro name="drive_wheel" params="prefix x_dir y_dir">
+    <link name="${prefix}_wheel_link">
+      <visual>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+        <material name="wheel_black"/>
+      </visual>
+      <collision>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+      </collision>
+      <xacro:cylinder_inertia m="${wheel_mass}" r="${wheel_radius}" h="${wheel_width}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:cylinder_inertia>
+    </link>
 
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${prefix}_wheel_link"/>
+      <origin xyz="${x_dir * wheel_offset_x} ${y_dir * wheel_offset_y} 0" rpy="${pi/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:drive_wheel prefix="front_left"  x_dir="1"  y_dir="1"/>
+  <xacro:drive_wheel prefix="front_right" x_dir="1"  y_dir="-1"/>
+  <xacro:drive_wheel prefix="rear_left"   x_dir="-1" y_dir="1"/>
+  <xacro:drive_wheel prefix="rear_right"  x_dir="-1" y_dir="-1"/>
+
+  <!-- ============ Lidar (mounted on top of chassis) ============ -->
+  <link name="laser_link">
+    <visual>
+      <geometry><cylinder radius="${laser_radius}" length="${laser_height}"/></geometry>
+      <material name="laser_red"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="${laser_radius}" length="${laser_height}"/></geometry>
+    </collision>
+    <xacro:cylinder_inertia m="${laser_mass}" r="${laser_radius}" h="${laser_height}">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:cylinder_inertia>
+  </link>
+
+  <joint name="laser_joint" type="fixed">
     <parent link="base_link"/>
     <child link="laser_link"/>
+    <origin xyz="${laser_x} ${laser_y} ${laser_z}" rpy="0 0 0"/>
+  </joint>
 
-    <origin xyz="0 0 0.25"
-            rpy="0 0 0"/>
-</joint>
+  <!-- ============ IMU ============ -->
+  <link name="imu_link">
+    <visual>
+      <geometry><box size="${imu_size} ${imu_size} ${imu_size}"/></geometry>
+      <material name="laser_red"/>
+    </visual>
+    <collision>
+      <geometry><box size="${imu_size} ${imu_size} ${imu_size}"/></geometry>
+    </collision>
+    <xacro:box_inertia m="${imu_mass}" x="${imu_size}" y="${imu_size}" z="${imu_size}">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:box_inertia>
+  </link>
 
-
-<!-- Wheels start here -->
-
-<!-- Left wheel -->
-    <link name="left_wheel_link">
-        <visual>
-            <geometry>
-                <cylinder radius="0.10" length="0.05"/>
-            </geometry>
-        </visual>
-
-        <collision>
-            <geometry>
-                <cylinder radius="0.10" length="0.05"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="left_wheel_joint" type="continuous">
-        <parent link="base_link"/>
-        <child link="left_wheel_link"/>
-
-        <origin xyz="0 0.225 0.10" rpy="1.5708 0 0"/>
-    </joint>
-
-
-    <!-- Right wheel -->
-    <link name="right_wheel_link">
-        <visual>
-            <geometry>
-                <cylinder radius="0.10" length="0.05"/>
-            </geometry>
-        </visual>
-
-        <collision>
-            <geometry>
-                <cylinder radius="0.10" length="0.05"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="right_wheel_joint" type="continuous">
-        <parent link="base_link"/>
-        <child link="right_wheel_link"/>
-
-        <origin xyz="0 -0.225 0.10" rpy="1.5708 0 0"/>
-    </joint>
-
-<!-- Visual -->
-<visual>
-    ...
-</visual>
-
-<!-- Collision -->
-<collision>
-    ...
-</collision>
-
-<!-- Inertial -->
-<inertial>
-    ...
-</inertial>
+  <!-- Frame follows the ROS convention: x forward, y left, z up.
+       If the real IMU is mounted rotated, put that rotation in rpy. -->
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="${imu_x} ${imu_y} ${imu_z}" rpy="0 0 0"/>
+  </joint>
 
 </robot>

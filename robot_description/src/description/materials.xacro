@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- materials.xacro : named colours so visuals aren't all default white -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <material name="body_grey"> <color rgba="0.55 0.55 0.60 1.0"/> </material>
+  <material name="wheel_black"><color rgba="0.10 0.10 0.10 1.0"/> </material>
+  <material name="laser_red">  <color rgba="0.80 0.10 0.10 1.0"/> </material>
+</robot>
