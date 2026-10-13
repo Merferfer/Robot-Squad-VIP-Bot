@@ -1,0 +1,9 @@
+# Ignore everything in the project root
+/*
+
+# Do not ignore the .gitignore file itself
+!.gitignore
+
+# Allow specific folders (include the trailing slash)
+!robot_description/
+!folder2/
