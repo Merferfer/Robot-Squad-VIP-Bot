@@ -1,0 +1,15 @@
+# Coordinates belong to ONE saved map. Replace examples with your actual poses.
+# x/y: meters in map frame; yaw: radians (0 points along map +X).
+frame_id: map
+destinations: {}
+#
+# Replace the empty dictionary above with entries such as:
+# destinations:
+#   lab:
+#     x: 3.2
+#     y: 1.4
+#     yaw: 1.57
+#   entrance:
+#     x: 0.5
+#     y: -2.0
+#     yaw: 0.0

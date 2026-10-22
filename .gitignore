@@ -6,4 +6,5 @@
 
 # Allow specific folders (include the trailing slash)
 !robot_description/
+!destination_manager/
 !misc/
