@@ -35,5 +35,5 @@ STORES = [
     "Apple Store",
     "Macy's",
     "GameStop",
-    "Restrooms",
+    "restrooms",
 ]

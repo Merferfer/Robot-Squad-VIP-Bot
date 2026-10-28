@@ -3,6 +3,7 @@ import requests
 from stores import STORES
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
+MODEL = "llama3.2"   # later you can try "llama3.2:1b" here for faster (but dumber) answers
 
 # turns your store list into one comma-separated line the model can read
 store_list = ", ".join(STORES)
@@ -20,15 +21,34 @@ Rules:
 Stores in this mall: {store_list}
 """
 
+# one shared set of options so the warm-up and the real questions match exactly
+OPTIONS = {"num_predict": 100, "num_ctx": 2048}
+
+
+def warm_up():
+    # sends a tiny real request so the model AND the system prompt are already processed
+    try:
+        payload = {
+            "model": MODEL,
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT},
+                         {"role": "user", "content": "hi"}],
+            "stream": False,
+            "keep_alive": "30m",
+            "options": {**OPTIONS, "num_predict": 1},  # only need one token out
+        }
+        requests.post(OLLAMA_URL, json=payload, timeout=120)
+    except requests.RequestException:
+        print("Couldn't reach Ollama, is it running?")
+
 
 def stream_llm_response(user_text, history):
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history + [{"role": "user", "content": user_text}]
     payload = {
-        "model": "llama3.2",
+        "model": MODEL,
         "messages": messages,
         "stream": True,          # send words back as they're generated
         "keep_alive": "30m",     # keep the model loaded between questions
-        "options": {"num_predict": 100},  # hard cap on answer length
+        "options": OPTIONS,
     }
     with requests.post(OLLAMA_URL, json=payload, stream=True, timeout=120) as r:
         r.raise_for_status()
