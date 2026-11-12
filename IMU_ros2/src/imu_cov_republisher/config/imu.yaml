@@ -1,0 +1,36 @@
+#Accelerometer
+accelerometer_noise_density_x: 0.004854472402839097 
+accelerometer_noise_density_y: 0.003611848803330884 
+accelerometer_noise_density_z: 0.00908835482927656 
+accelerometer_random_walk_x: 0.00035365852559634143 
+accelerometer_random_walk_y: 0.0001713705484821047 
+accelerometer_random_walk_z: 0.00028368513273732834 
+accelerometer_bias_instability_x: 0.0002960547 
+accelerometer_bias_instability_y: 8.511955e-05 
+accelerometer_bias_instability_z: 0.0001485352 
+
+#Gyroscope
+gyroscope_noise_density_x: 0.0011367053703666885 
+gyroscope_noise_density_y: 0.00029375039291051235 
+gyroscope_noise_density_z: 4.880107854245784e-05 
+gyroscope_random_walk_x: 6.496241611462443e-05 
+gyroscope_random_walk_y: 2.236947696169867e-05 
+gyroscope_random_walk_z: 2.1742598442224894e-06 
+gyroscope_bias_instability_x: 3.819755e-06 
+gyroscope_bias_instability_y: 2.346827e-05 
+gyroscope_bias_instability_z: 2.121324e-06 
+
+#Euler angles (roll, pitch, yaw)
+orientation_noise_density_x: 0.00012051293912963838 
+orientation_noise_density_y: 0.00018036058299322728 
+orientation_noise_density_z: 0.0012936328603654734 
+orientation_random_walk_x: 2.0316676103211523e-05 
+orientation_random_walk_y: 3.667441498237416e-05 
+orientation_random_walk_z: 0.0006150653888095396 
+orientation_bias_instability_x: 7.906893e-06 
+orientation_bias_instability_y: 2.96092e-05 
+orientation_bias_instability_z: 5.698643e-05 
+
+rostopic: '/sensors/imu' #Make sure this is correct
+update_rate: 400.0 #Make sure this is correct
+

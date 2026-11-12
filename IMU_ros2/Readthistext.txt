@@ -1,0 +1,6 @@
+Us the lsusb command to check which usb port the imu is plugged into,
+use the thick usb C to C cable because to provides the proper data throughput
+Before running colcon build on imu_ws, go into republisher.py and change the home/danieldynamics/... directory to match your own.
+There is a file called imu.yaml in imu_ws/src/imu_cov_republisher/config. This is the where the covariance values are stored in the republisher node. A proper dataset has not been used yet, the covariance values are only a rough trial run from the data. I will add a more precise imu.yaml file in the future.
+The message type is sensor_msgs/msg/Imu. 
+
