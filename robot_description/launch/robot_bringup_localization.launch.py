@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
-
 """
-Full robot bringup for the indoor navigation robot (ROS 2 Jazzy).
+Robot bringup for saved-map localization testing (ROS 2 Jazzy).
 
 Starts:
-  - robot_state_publisher (loads the robot URDF/Xacro)
+  - robot_state_publisher (robot URDF/Xacro and fixed sensor transforms)
   - Slamtec C1 LiDAR driver
-  - REV motor bridge
-  - SLAM Toolbox (online asynchronous mapping)
+  - REV motor bridge (expected to provide odometry and odom -> base TF)
+  - Nav2 localization (Map Server + AMCL)
 
-Assumptions to verify against your workspace:
-  - robot_description/urdf/robot.urdf.xacro exists
-  - sllidar_ros2/launch/view_sllidar_c1_launch.py exists
-  - rev_motor_bridge provides the executable "motor_bridge"
-  - the REV bridge publishes odometry on /odom and the odom -> base_link TF
+Does NOT start:
+  - SLAM Toolbox
+  - Nav2 planning/controller/navigation servers
 
-If your REV bridge does NOT publish odometry and the odom -> base_link
-transform, SLAM Toolbox will not be able to build a map until that
-odometry/TF publisher is added.
+Example:
+  ros2 launch <your_package> robot_bringup_localization.launch.py
+
+Optional arguments:
+  map:=/absolute/path/to/map.yaml
+  params_file:=/absolute/path/to/nav2_params.yaml
+  use_sim_time:=false
 """
 
 import os
@@ -33,28 +34,21 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
-    # Locate installed package share directories.
     robot_description_share = get_package_share_directory('robot_description')
     sllidar_share = get_package_share_directory('sllidar_ros2')
-    slam_toolbox_share = get_package_share_directory('slam_toolbox')
+    nav2_bringup_share = get_package_share_directory('nav2_bringup')
 
-    # Files installed by robot_description/CMakeLists.txt.
     xacro_file = os.path.join(
         robot_description_share, 'urdf', 'robot.urdf.xacro'
     )
 
-    # Use the standard asynchronous online mapping parameters shipped
-    # with the Jazzy slam_toolbox package.
-    default_slam_params = os.path.join(
-        slam_toolbox_share,
-        'config',
-        'mapper_params_online_async.yaml'
-    )
+    default_map = '/home/alex-heckel/ros2_ws/config/assistive_robot_map.yaml'
+    default_nav2_params = '/home/alex-heckel/ros2_ws/config/nav2_params.yaml'
 
     use_sim_time = LaunchConfiguration('use_sim_time')
-    slam_params_file = LaunchConfiguration('slam_params_file')
+    map_file = LaunchConfiguration('map')
+    params_file = LaunchConfiguration('params_file')
 
-    # Expand the Xacro file into a URDF string for robot_state_publisher.
     robot_description = ParameterValue(
         Command(['xacro ', xacro_file]),
         value_type=str
@@ -71,8 +65,8 @@ def generate_launch_description():
         }],
     )
 
-    # Slamtec C1 driver. This uses the launch file that you have been
-    # using to display the C1 scan in RViz.
+    # Keep the same C1 launch include used by the working full bringup.
+    # It may also start RViz, depending on the contents of that launch file.
     lidar = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -83,9 +77,6 @@ def generate_launch_description():
         )
     )
 
-    # The bridge is expected to receive velocity commands (normally
-    # /cmd_vel) and communicate with the REV Control Hub. It should also
-    # publish /odom and odom -> base_link if it is your odometry source.
     rev_motor_bridge = Node(
         package='rev_motor_bridge',
         executable='motor_bridge',
@@ -93,18 +84,21 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Start SLAM Toolbox in online asynchronous mapping mode.
-    slam_toolbox = IncludeLaunchDescription(
+    # Starts only the localization stack: Map Server, AMCL, and its
+    # lifecycle manager. It does not start Nav2's planner/controller.
+    localization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
-                slam_toolbox_share,
+                nav2_bringup_share,
                 'launch',
-                'online_async_launch.py'
+                'localization_launch.py'
             )
         ),
         launch_arguments={
+            'map': map_file,
+            'params_file': params_file,
             'use_sim_time': use_sim_time,
-            'slam_params_file': slam_params_file,
+            'autostart': 'true',
         }.items(),
     )
 
@@ -112,16 +106,21 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
-            description='Use simulation clock if true; otherwise use system time.',
+            description='Use simulation clock for simulation; false for the physical robot.',
         ),
         DeclareLaunchArgument(
-            'slam_params_file',
-            default_value=default_slam_params,
-            description='Full path to the SLAM Toolbox parameter YAML file.',
+            'map',
+            default_value=default_map,
+            description='Absolute path to the saved occupancy-grid map YAML.',
+        ),
+        DeclareLaunchArgument(
+            'params_file',
+            default_value=default_nav2_params,
+            description='Absolute path to the Nav2 parameters YAML.',
         ),
 
         robot_state_publisher,
         lidar,
         rev_motor_bridge,
-        slam_toolbox,
+        localization,
     ])
